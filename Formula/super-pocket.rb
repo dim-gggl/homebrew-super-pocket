@@ -323,14 +323,14 @@ class SuperPocket < Formula
   end
 
   def install
-    # 1. Création de l'environnement virtuel
+    # 1. On prépare l'environnement virtuel Python 3.11
     virtualenv_create(libexec, "python3.11")
     
-    # 2. On définit le chemin vers pip une bonne fois pour toutes
+    # Raccourci vers le pip de cet environnement
     pip = libexec/"bin/pip"
 
     resources.each do |r|
-      # Si c'est un Wheel (.whl), on l'installe directement sans décompresser
+      # Gestion intelligente : si c'est un Wheel (.whl), on l'installe directement
       if r.url.end_with?(".whl")
         system pip, "install", r.cached_download
       else
@@ -341,10 +341,13 @@ class SuperPocket < Formula
       end
     end
 
-    # 3. Installation de Super Pocket
-    system pip, "install", "."
-    
-    # 4. Création du lien symbolique
+    # 2. Installation de Super Pocket (LE FIX EST ICI)
+    # --no-deps            : Ne cherche pas à installer les dépendances (on vient de le faire manuellement)
+    # --no-build-isolation : N'essaie pas de télécharger des outils de build (interdit par Homebrew), utilise ceux présents
+    # --ignore-installed   : Écrase si nécessaire sans se plaindre
+    system pip, "install", "--no-deps", "--no-build-isolation", "--ignore-installed", "."
+
+    # 3. Création du lien symbolique pour la commande finale
     bin.install_symlink libexec/"bin/pocket"
   end
 end
