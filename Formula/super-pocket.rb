@@ -168,8 +168,8 @@ class SuperPocket < Formula
   end
 
   resource "pydantic_core" do
-    url "https://files.pythonhosted.org/packages/71/70/23b021c950c2addd24ec408e9ab05d59b035b39d97cdc1130e1bce647bb6/pydantic_core-2.41.5.tar.gz"
-    sha256 "08daa51ea16ad373ffd5e7606252cc32f07bc72b28284b6bc9c6df804816476e"
+    url "https://files.pythonhosted.org/packages/cp311/p/pydantic_core/pydantic_core-2.41.5-cp311-cp311-macosx_11_0_arm64.whl"
+    sha256 "7f3bf998340c6d4b0c9a2f02d6a400e51f123b59565d74dc60d252ce888c260b"
   end
 
   resource "Pygments" do
@@ -313,8 +313,8 @@ class SuperPocket < Formula
   end
 
   resource "watchfiles" do
-    url "https://files.pythonhosted.org/packages/c2/c9/8869df9b2a2d6c59d79220a4db37679e74f807c559ffe5265e08b227a210/watchfiles-1.1.1.tar.gz"
-    sha256 "a173cb5c16c4f40ab19cecf48a534c409f7ea983ab8fed0741304a1c0a31b3f2"
+    url "https://files.pythonhosted.org/packages/cp311/w/watchfiles/watchfiles-0.24.0-cp311-cp311-macosx_11_0_arm64.whl"
+    sha256 "2dadf8a8014fde6addfd3c379e6ed1a981c8f0a48292d662e27cabfe4239c83c"
   end
 
   resource "websockets" do
