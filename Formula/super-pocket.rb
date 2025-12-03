@@ -7,7 +7,20 @@ class SuperPocket < Formula
   sha256 "aea68dd5d5ef7c219102d87196bcb0dbeff0c7948f89ec2fb708deb724b907df"
   license "MIT"
 
-  depends_on "python3"
+# 1. Forcer Python 3.11 pour la stabilité
+  depends_on "python@3.11" 
+
+  # 2. AJOUT CRITIQUE : Librairies requises pour compiler Pillow
+  depends_on "freetype"
+  depends_on "jpeg-turbo"
+  depends_on "libtiff"
+  depends_on "little-cms2"
+  depends_on "openjpeg"
+  depends_on "webp"
+  depends_on "zlib"
+  
+  # Outil de build souvent nécessaire pour lier les librairies C
+  depends_on "pkg-config" => :build
 
   resource "alabaster" do
     url "https://files.pythonhosted.org/packages/a6/f8/d9c74d0daf3f742840fd818d69cfae176fa332022fd44e3469487d5a9420/alabaster-1.0.0.tar.gz"
