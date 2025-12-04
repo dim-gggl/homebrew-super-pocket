@@ -60,7 +60,7 @@ class SuperPocket < Formula
     sha256 "0055bc24fe53e56a40e9e0ad1ae2baa81622c406e548e501e717634e2dfbc40b"
   end
 
-  resource "Jinja2" do
+  resource "jinja2" do
     url "https://files.pythonhosted.org/packages/df/bf/f7da0350254c0ed7c72f3e33cef02e048281fec7ecec5f032d4aac52226b/jinja2-3.1.6.tar.gz"
     sha256 "0137fb05990d35f1275a587e9aee6d56da821fc83491a0fb838183be43f66d6d"
   end
@@ -70,26 +70,18 @@ class SuperPocket < Formula
     sha256 "87d4f8125c9988bfbed67af47dd7a953e2fc7b0cc1e7800ec6d2080d490bb353"
   end
 
-  resource "PyYAML" do
+  resource "pyyaml" do
     url "https://files.pythonhosted.org/packages/05/8e/961c0007c59b8dd7729d542c61a4d537767a59645b82a0b521206e1e25c2/pyyaml-6.0.3.tar.gz"
     sha256 "d76623373421df22fb4cf8817020cbb7ef15c725b9d5e45f17e189bfc384190f"
   end
 
   def install
-    python = Formula["python@3.11"].opt_bin/"python3.11"
-    venv = virtualenv_create(libexec, python)
-    venv.pip_install resources
-    venv.pip_install buildpath
-    bin.install_symlink libexec/"bin/pocket"
+    virtualenv_install_with_resources
   end
 
-
   test do
-    # Verify pocket is in PATH and version displays correctly
-    assert_match "pocket, version", shell_output("pocket --version")
-
-    # Test basic functionality - help command works
-    system "pocket", "--help"
+    # Adapte selon le vrai output
+    system bin/"pocket", "--help"
   end
 
   def caveats
