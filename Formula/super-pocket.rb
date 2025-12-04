@@ -34,11 +34,11 @@ class SuperPocket < Formula
   end
 
   test do
-    # Verify command is accessible and version is displayed
-    assert_match "pocket, version", shell_output("#{bin}/pocket --version")
+    # Verify pocket is in PATH and version displays correctly
+    assert_match "pocket, version", shell_output("pocket --version")
 
-    # Test basic functionality - show help works
-    system bin/"pocket", "--help"
+    # Test basic functionality - help command works
+    system "pocket", "--help"
   end
 
   def caveats
