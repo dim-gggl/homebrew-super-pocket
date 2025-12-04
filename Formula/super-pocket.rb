@@ -4,7 +4,7 @@ class SuperPocket < Formula
   desc "Developer toolkit: README generator, codebase-to-markdown, XML tags, agent templates & cheatsheets"
   homepage "https://github.com/dim-gggl/super-pocket"
   url "https://github.com/dim-gggl/super-pocket/archive/refs/tags/v1.0.tar.gz"
-  sha256 "aea68dd5d5ef7c219102d87196bcb0dbeff0c7948f89ec2fb708deb724b907df"
+  sha256 "e64f91ead8fab20f9bc401238cb074e4bbb1f759d7db79cabaaaa06d5c290b06"
   license "MIT"
 
 # 1. Forcer Python 3.11 pour la stabilité
