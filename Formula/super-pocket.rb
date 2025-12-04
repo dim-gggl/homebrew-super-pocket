@@ -1,10 +1,10 @@
 class SuperPocket < Formula
   include Language::Python::Virtualenv
-
+  
   desc "Developer toolkit: README generator, codebase-to-markdown, XML tags, agent templates & cheatsheets"
   homepage "https://github.com/dim-gggl/super-pocket"
   url "https://github.com/dim-gggl/super-pocket/archive/refs/tags/v1.0.tar.gz"
-  sha256 "REGENERATE_THIS_HASH"  # Run: curl -L <url> | shasum -a 256
+  sha256 "aea68dd5d5ef7c219102d87196bcb0dbeff0c7948f89ec2fb708deb724b907df"
   license "MIT"
 
   # Python 3.11 required for binary wheel compatibility
