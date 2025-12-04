@@ -76,18 +76,13 @@ class SuperPocket < Formula
   end
 
   def install
-    # Create virtualenv with pip included
-    venv = virtualenv_create(libexec, "python3.11")
-
-    # Install rich-click first (required for CLI interactive mode)
-    venv.pip_install resource("rich-click")
-
-    # Install the package with all dependencies using pip
-    venv.pip_install Pathname.pwd
-
-    # Create symlink for CLI command
+    python = Formula["python@3.11"].opt_bin/"python3.11"
+    venv = virtualenv_create(libexec, python)
+    venv.pip_install resources
+    venv.pip_install buildpath
     bin.install_symlink libexec/"bin/pocket"
   end
+
 
   test do
     # Verify pocket is in PATH and version displays correctly
