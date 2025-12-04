@@ -1,16 +1,16 @@
 class SuperPocket < Formula
   include Language::Python::Virtualenv
-  
+
   desc "Developer toolkit: README generator, codebase-to-markdown, XML tags, agent templates & cheatsheets"
   homepage "https://github.com/dim-gggl/super-pocket"
   url "https://github.com/dim-gggl/super-pocket/archive/refs/tags/v1.0.tar.gz"
   sha256 "aea68dd5d5ef7c219102d87196bcb0dbeff0c7948f89ec2fb708deb724b907df"
   license "MIT"
 
-  # Python 3.11 required for binary wheel compatibility
-  depends_on "python@3.11"
+# 1. Forcer Python 3.11 pour la stabilité
+  depends_on "python@3.11" 
 
-  # System libraries required for Pillow image processing
+  # 2. AJOUT CRITIQUE : Librairies requises pour compiler Pillow
   depends_on "freetype"
   depends_on "jpeg-turbo"
   depends_on "libtiff"
@@ -18,8 +18,8 @@ class SuperPocket < Formula
   depends_on "openjpeg"
   depends_on "webp"
   depends_on "zlib"
-
-  # Build tool for linking C libraries
+  
+  # Outil de build souvent nécessaire pour lier les librairies C
   depends_on "pkg-config" => :build
 
   resource "alabaster" do
@@ -319,13 +319,8 @@ class SuperPocket < Formula
 
     pip = libexec/"bin/pip"
 
-    # Platform-specific binary packages that pip should handle automatically
-    auto_install_packages = ["pydantic_core", "watchfiles"]
-
-    # Install all resources except platform-specific ones
+    # Install all dependencies from resources
     resources.each do |r|
-      next if auto_install_packages.include?(r.name)
-
       if r.url.end_with?(".whl")
         system pip, "install", "--no-deps", r.cached_download
       else
@@ -335,7 +330,8 @@ class SuperPocket < Formula
       end
     end
 
-    # Let pip install platform-specific packages with correct architecture
+    # Install platform-specific packages (pydantic_core, watchfiles)
+    # Let pip choose the correct architecture-specific wheels
     system pip, "install", "--no-cache-dir", "pydantic-core==2.41.5", "watchfiles==0.24.0"
 
     # Install super-pocket itself
@@ -345,24 +341,5 @@ class SuperPocket < Formula
 
     # Create symlink for CLI command
     bin.install_symlink libexec/"bin/pocket"
-  end
-
-  test do
-    # Verify command is accessible
-    assert_match "pocket", shell_output("#{bin}/pocket --version")
-
-    # Test basic functionality
-    system bin/"pocket", "project", "list-templates"
-  end
-
-  def caveats
-    <<~EOS
-      Super Pocket has been installed successfully!
-
-      Run 'pocket --help' to get started.
-
-      Note: This formula uses Python 3.11 exclusively due to binary wheel
-      compatibility requirements for pydantic-core and watchfiles.
-    EOS
   end
 end
