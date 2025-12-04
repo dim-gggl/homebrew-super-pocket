@@ -3,8 +3,8 @@ class SuperPocket < Formula
 
   desc "Developer toolkit: README generator, codebase-to-markdown, XML tags, agent templates & cheatsheets"
   homepage "https://github.com/dim-gggl/super-pocket"
-  url "https://github.com/dim-gggl/super-pocket/archive/refs/tags/v1.0.1.tar.gz"
-  sha256 "e64f91ead8fab20f9bc401238cb074e4bbb1f759d7db79cabaaaa06d5c290b06"
+  url "https://github.com/dim-gggl/super-pocket/archive/refs/tags/v1.0.tar.gz"
+  sha256 "aea68dd5d5ef7c219102d87196bcb0dbeff0c7948f89ec2fb708deb724b907df"
   license "MIT"
 
 # 1. Forcer Python 3.11 pour la stabilité
@@ -21,6 +21,43 @@ class SuperPocket < Formula
   
   # Outil de build souvent nécessaire pour lier les librairies C
   depends_on "pkg-config" => :build
+
+  def install
+    # Create a minimal virtualenv and let pip handle all dependencies
+    virtualenv_create(libexec, "python3.11")
+
+    # Install the package with all its dependencies
+    # Using the directory where pyproject.toml is located
+    system libexec/"bin/pip", "install", "--verbose", "."
+
+    # Create symlink for CLI command
+    bin.install_symlink libexec/"bin/pocket"
+  end
+
+  test do
+    # Verify command is accessible
+    assert_match "pocket", shell_output("#{bin}/pocket --version")
+
+    # Test basic functionality
+    system bin/"pocket", "project", "list-templates"
+  end
+
+  def caveats
+    <<~EOS
+      Super Pocket has been installed successfully!
+
+      Run 'pocket --help' to get started.
+
+      Note: This formula uses Python 3.11 exclusively due to binary wheel
+      compatibility requirements for pydantic-core and watchfiles.
+    EOS
+  end
+end
+
+__END__
+
+# ORIGINAL FORMULA WITH ALL RESOURCES (kept for reference)
+=begin
 
   resource "alabaster" do
     url "https://files.pythonhosted.org/packages/a6/f8/d9c74d0daf3f742840fd818d69cfae176fa332022fd44e3469487d5a9420/alabaster-1.0.0.tar.gz"
@@ -317,29 +354,27 @@ class SuperPocket < Formula
     # Create Python 3.11 virtual environment
     virtualenv_create(libexec, "python3.11")
 
-    pip = libexec/"bin/pip"
+    # Use virtualenv helper to install all dependencies
+    # This handles setuptools automatically and uses proper build isolation
+    virtualenv_install_with_resources using: "python3.11"
+  end
 
-    # Install all dependencies from resources
-    resources.each do |r|
-      if r.url.end_with?(".whl")
-        system pip, "install", "--no-deps", r.cached_download
-      else
-        r.stage do
-          system pip, "install", "--no-deps", "."
-        end
-      end
-    end
+  test do
+    # Verify command is accessible
+    assert_match "pocket", shell_output("#{bin}/pocket --version")
 
-    # Install platform-specific packages (pydantic_core, watchfiles)
-    # Let pip choose the correct architecture-specific wheels
-    system pip, "install", "--no-cache-dir", "pydantic-core==2.41.5", "watchfiles==0.24.0"
+    # Test basic functionality
+    system bin/"pocket", "project", "list-templates"
+  end
 
-    # Install super-pocket itself
-    # --no-deps: Dependencies already installed manually
-    # --no-build-isolation: Use system build tools (required by Homebrew)
-    system pip, "install", "--no-deps", "--no-build-isolation", "."
+  def caveats
+    <<~EOS
+      Super Pocket has been installed successfully!
 
-    # Create symlink for CLI command
-    bin.install_symlink libexec/"bin/pocket"
+      Run 'pocket --help' to get started.
+
+      Note: This formula uses Python 3.11 exclusively due to binary wheel
+      compatibility requirements for pydantic-core and watchfiles.
+    EOS
   end
 end
