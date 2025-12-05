@@ -9,6 +9,8 @@ class SuperPocket < Formula
 
   depends_on "python@3.11"
 
+  depends_on "rust" => :build
+
   # Libraries required to compile Pillow
   depends_on "freetype"
   depends_on "jpeg-turbo"
