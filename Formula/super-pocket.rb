@@ -1,4 +1,3 @@
-
 class SuperPocket < Formula
   include Language::Python::Virtualenv
 
@@ -10,10 +9,14 @@ class SuperPocket < Formula
 
   option "with-docs", "Include documentation build dependencies (Sphinx stack)"
   option "with-dev", "Include development dependencies (pytest stack)"
-  depends_on "python@3.11"
 
+  depends_on "cmake" => :build
   depends_on "rust" => :build
-
+  depends_on "pkg-config" => :build
+  depends_on "libyaml"
+  depends_on "python@3.11"
+  
+  # System dependencies for Pillow and so
   depends_on "freetype"
   depends_on "jpeg-turbo"
   depends_on "libtiff"
@@ -21,20 +24,40 @@ class SuperPocket < Formula
   depends_on "openjpeg"
   depends_on "webp"
   depends_on "zlib"
- 
-  depends_on "pkg-config" => :build  
+
+  # --- BUILD RESOURCES (NECESSARY for --no-build-isolation) ---
+  resource "scikit-build-core" do
+    url "https://files.pythonhosted.org/packages/06/11/496df839db6b3d4d3d8db4972e6b22b62990664e43f1696a2f4c424a7139/scikit_build_core-0.8.1.tar.gz"
+    sha256 "7671199a531f822e03009589d3d3d6232b6271c77823f7734a362241e57c6742"
+  end
+  
+  resource "pathspec" do
+    url "https://files.pythonhosted.org/packages/cc/20/ff623b09d963f88bfde16306a54c62ee5c03856aeb06f4e13d68f27cf15e/pathspec-0.12.1.tar.gz"
+    sha256 "a482d5150361ab33d15abd51e6f499843e8c056f316d5d72f1c76803b4516089"
+  end
+
+  # Packaging is often required by scikit-build-core
+  resource "packaging" do
+    url "https://files.pythonhosted.org/packages/a1/d4/1fc4078c65507b51b96ca8f8c3ba19e6a61c8253c72794544580a7b6c24d/packaging-25.0.tar.gz"
+    sha256 "d443872c98d677bf60f6a1f2f8c1cb748e8fe762d2bf9d3148b5599295b0fc4f"
+  end
+
+  # --- YOUR RESOURCES ---
   resource "rich-click" do
     url "https://files.pythonhosted.org/packages/bf/d8/f2c1b7e9a645ba40f756d7a5b195fc104729bc6b19061ba3ab385f342931/rich_click-1.9.4.tar.gz"
     sha256 "af73dc68e85f3bebb80ce302a642b9fe3b65f3df0ceb42eb9a27c467c1b678c8"
   end  
+
   resource "click" do
     url "https://files.pythonhosted.org/packages/3d/fa/656b739db8587d7b5dfa22e22ed02566950fbfbcdc20311993483657a5c0/click-8.3.1.tar.gz"
     sha256 "12ff4785d337a1bb490bb7e9c2b1ee5da3112e94a8622f26a6c77f5d2fc6842a"
-  end  
+  end
+
   resource "pillow" do
     url "https://files.pythonhosted.org/packages/5a/b0/cace85a1b0c9775a9f8f5d5423c8261c858760e2466c79b2dd184638b056/pillow-12.0.0.tar.gz"
     sha256 "87d4f8125c9988bfbed67af47dd7a953e2fc7b0cc1e7800ec6d2080d490bb353"
-  end  
+  end
+
   resource "pyyaml" do
     url "https://files.pythonhosted.org/packages/05/8e/961c0007c59b8dd7729d542c61a4d537767a59645b82a0b521206e1e25c2/pyyaml-6.0.3.tar.gz"
     sha256 "d76623373421df22fb4cf8817020cbb7ef15c725b9d5e45f17e189bfc384190f"
@@ -83,11 +106,6 @@ class SuperPocket < Formula
   resource "httpcore" do
     url "https://files.pythonhosted.org/packages/06/94/82699a10bca87a5556c9c59b5963f2d039dbd239f25bc2a63907a05a14cb/httpcore-1.0.9.tar.gz"
     sha256 "6e34463af53fd2ab5d807f399a9b45ea31c3dfa2276f15a2c3f00afff6e176e8"
-  end
-
-  resource "packaging" do
-    url "https://files.pythonhosted.org/packages/a1/d4/1fc4078c65507b51b96ca8f8c3ba19e6a61c8253c72794544580a7b6c24d/packaging-25.0.tar.gz"
-    sha256 "d443872c98d677bf60f6a1f2f8c1cb748e8fe762d2bf9d3148b5599295b0fc4f"
   end
 
   resource "pydantic" do
@@ -295,68 +313,58 @@ class SuperPocket < Formula
   end
 
   def install
-   docs_resources = %w[
-     alabaster
-     annotated-doc
-     babel
-     docutils
-     imagesize
-     markdown-it-py
-     MarkupSafe
-     mdit-py-plugins
-     mdurl
-     myst-parser
-     Pygments
-     snowballstemmer
-     Sphinx
-     sphinx-autobuild
-     sphinx-autodoc-typehints
-     sphinx-rtd-theme
-     sphinx-tabs
-     sphinxcontrib-applehelp
-     sphinxcontrib-devhelp
-     sphinxcontrib-htmlhelp
-     sphinxcontrib-httpdomain
-     sphinxcontrib-jquery
-     sphinxcontrib-jsmath
-     sphinxcontrib-qthelp
-     sphinxcontrib-serializinghtml
-   ]
+    # 1. Configuration of the environment to help compilator
+    ENV.prepend "CPPFLAGS", "-I#{Formula["libyaml"].opt_include}"
+    ENV.prepend "LDFLAGS", "-L#{Formula["libyaml"].opt_lib}"
+    
+    # We force scikit-build to use Homebrew's builtin CMake
+    ENV["SKBUILD_CMAKE_EXECUTABLE"] = Formula["cmake"].opt_bin/"cmake"
 
-  dev_resources = %w[coverage iniconfig pluggy pytest]
+    # 2. Creation of the virtual environnement with Python 3.11
+    venv = virtualenv_create(libexec, "python3.11")
 
-  venv = virtualenv_create(libexec, "python3.11")
+    # 3. Installation of the dependencies for BUILD which we'll need afterwards
+    # We include packaging here because scikit-build-core typically needs it
+    resources.each do |r|
+        if ["scikit-build-core", "pathspec", "packaging"].include?(r.name)
+            venv.pip_install r
+        end
+    end
 
-  resources.each do |resource|
-    next if docs_resources.include?(resource.name) && build.without?("docs")
-    next if dev_resources.include?(resource.name) && build.without?("dev")
+    # 4. Installation of the project dependencies (Pillow, PyYAML, etc.)
+    # We filter the docs and dev dependencies according to the options chosen
+    docs_resources = %w[alabaster babel docutils imagesize markdown-it-py MarkupSafe mdit-py-plugins mdurl myst-parser Pygments snowballstemmer Sphinx sphinx-autobuild sphinx-autodoc-typehints sphinx-rtd-theme sphinx-tabs sphinxcontrib-applehelp sphinxcontrib-devhelp sphinxcontrib-htmlhelp sphinxcontrib-httpdomain sphinxcontrib-jquery sphinxcontrib-jsmath sphinxcontrib-qthelp sphinxcontrib-serializinghtml]
+    dev_resources = %w[coverage iniconfig pluggy pytest]
 
-    venv.pip_install resource
+    resources.each do |resource|
+      # We skip the build tools that are already installed
+      next if ["scikit-build-core", "pathspec", "packaging"].include?(resource.name)
+      
+      # We manage the options
+      next if docs_resources.include?(resource.name) && build.without?("docs")
+      next if dev_resources.include?(resource.name) && build.without?("dev")
+
+      venv.pip_install resource
+    end
+
+    # 5. Installation of the project (Super Pocket)
+    # Here we use --no-build-isolation to use the system CMake
+    # and the packages we just installed above.
+    # We use --no-deps because we have already installed the dependencies manually.
+    system libexec/"bin/pip", "install", "-v", "--no-deps", "--no-build-isolation", "--ignore-installed", "."
+
+    # 6. Creation of the final symbolic link in /opt/homebrew/bin
+    bin.install_symlink libexec/"bin/super-pocket" => "pocket"
   end
 
-   venv.pip_install_and_link buildpath
-  end
- 
   test do
-    # Adapte selon le vrai output
     system bin/"pocket", "--help"
   end
- 
+
   def caveats
     <<~EOS
       Super Pocket has been installed successfully!
- 
       Run 'pocket --help' to get started.
- 
-      Note: This formula uses Python 3.11 exclusively due to binary wheel
-      compatibility requirements for pydantic-core and watchfiles.
-
-     Optional dependencies:
-     - with-docs: installs the full Sphinx toolchain (themes, extensions,
-       Markdown support). Enables local doc builds but increases download size
-       and build time.
-     - with-dev: installs pytest, coverage and helpers for running the project's
-       test suite locally. Skipping it keeps the install smaller and faster.
     EOS
   end
 end
