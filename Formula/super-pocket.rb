@@ -313,47 +313,50 @@ class SuperPocket < Formula
   end
 
   def install
-    # 1. Configuration of the environment to help compilator
+    # 1. Configuration de l'environnement pour aider le compilateur (au cas où il reste des sources)
     ENV.prepend "CPPFLAGS", "-I#{Formula["libyaml"].opt_include}"
     ENV.prepend "LDFLAGS", "-L#{Formula["libyaml"].opt_lib}"
     
-    # We force scikit-build to use Homebrew's builtin CMake
+    # On force scikit-build à utiliser le CMake installé par Homebrew
     ENV["SKBUILD_CMAKE_EXECUTABLE"] = Formula["cmake"].opt_bin/"cmake"
 
-    # 2. Creation of the virtual environnement with Python 3.11
+    # 2. Création de l'environnement virtuel
     venv = virtualenv_create(libexec, "python3.11")
 
-    # 3. Installation of the dependencies for BUILD which we'll need afterwards
-    # We include packaging here because scikit-build-core typically needs it
+    # 3. Installation des outils de BUILD (packaging est CRUCIAL ici)
     resources.each do |r|
         if ["scikit-build-core", "pathspec", "packaging"].include?(r.name)
             venv.pip_install r
         end
     end
 
-    # 4. Installation of the project dependencies (Pillow, PyYAML, etc.)
-    # We filter the docs and dev dependencies according to the options chosen
+    # 4. Installation des dépendances du projet
     docs_resources = %w[alabaster babel docutils imagesize markdown-it-py MarkupSafe mdit-py-plugins mdurl myst-parser Pygments snowballstemmer Sphinx sphinx-autobuild sphinx-autodoc-typehints sphinx-rtd-theme sphinx-tabs sphinxcontrib-applehelp sphinxcontrib-devhelp sphinxcontrib-htmlhelp sphinxcontrib-httpdomain sphinxcontrib-jquery sphinxcontrib-jsmath sphinxcontrib-qthelp sphinxcontrib-serializinghtml]
     dev_resources = %w[coverage iniconfig pluggy pytest]
 
     resources.each do |resource|
-      # We skip the build tools that are already installed
+      # On saute les outils de build déjà installés
       next if ["scikit-build-core", "pathspec", "packaging"].include?(resource.name)
       
-      # We manage the options
+      # Gestion des options (docs / dev)
       next if docs_resources.include?(resource.name) && build.without?("docs")
       next if dev_resources.include?(resource.name) && build.without?("dev")
 
-      venv.pip_install resource
+      # --- LA CORRECTION EST ICI ---
+      if resource.url.end_with?(".whl")
+        # Si c'est un Wheel (.whl), on l'installe directement depuis le fichier téléchargé
+        # sans essayer de le décompresser ou de le compiler.
+        system libexec/"bin/pip", "install", "-v", "--no-deps", "--ignore-installed", resource.cached_download
+      else
+        # Si c'est une source (.tar.gz), on laisse Homebrew gérer la compilation
+        venv.pip_install resource
+      end
     end
 
-    # 5. Installation of the project (Super Pocket)
-    # Here we use --no-build-isolation to use the system CMake
-    # and the packages we just installed above.
-    # We use --no-deps because we have already installed the dependencies manually.
+    # 5. Installation de TON projet (Super Pocket)
     system libexec/"bin/pip", "install", "-v", "--no-deps", "--no-build-isolation", "--ignore-installed", "."
 
-    # 6. Creation of the final symbolic link in /opt/homebrew/bin
+    # 6. Création du lien symbolique final
     bin.install_symlink libexec/"bin/super-pocket" => "pocket"
   end
 
