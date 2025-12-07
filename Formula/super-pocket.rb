@@ -27,13 +27,13 @@ class SuperPocket < Formula
 
   # --- BUILD RESOURCES (NECESSARY for --no-build-isolation) ---
   resource "scikit-build-core" do
-    url "https://files.pythonhosted.org/packages/06/11/496df839db6b3d4d3d8db4972e6b22b62990664e43f1696a2f4c424a7139/scikit_build_core-0.8.1.tar.gz"
-    sha256 "7671199a531f822e03009589d3d3d6232b6271c77823f7734a362241e57c6742"
+    url "https://files.pythonhosted.org/packages/source/s/scikit-build-core/scikit_build_core-0.11.6.tar.gz"
+    sha256 "5982ccd839735be99cfd3b92a8847c6c196692f476c215da84b79d2ad12f9f1b"
   end
   
   resource "pathspec" do
-    url "https://files.pythonhosted.org/packages/cc/20/ff623b09d963f88bfde16306a54c62ee5c03856aeb06f4e13d68f27cf15e/pathspec-0.12.1.tar.gz"
-    sha256 "a482d5150361ab33d15abd51e6f499843e8c056f316d5d72f1c76803b4516089"
+      url "https://files.pythonhosted.org/packages/source/p/pathspec/pathspec-0.12.1.tar.gz"
+    sha256 "a482d51503a1ab33b1c67a6c3813a26953dbdc71c31dacaef9a838c4e29f5712"
   end
 
   # Packaging is often required by scikit-build-core
