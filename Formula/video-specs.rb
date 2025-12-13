@@ -11,7 +11,7 @@ class VideoSpecs < Formula
 
   resource "click" do
     url "https://files.pythonhosted.org/packages/source/c/click/click-8.3.1.tar.gz"
-    sha256 "96f683aae8dc5e8d70d13e6f7d9a1fd3d87e4e1bfb4a93e57e5e8b2c2f8c4a7c"
+    sha256 "12ff4785d337a1bb490bb7e9c2b1ee5da3112e94a8622f26a6c77f5d2fc6842a"
   end
 
   resource "rich" do
